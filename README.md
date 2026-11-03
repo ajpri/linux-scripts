@@ -333,9 +333,9 @@ Install: copy `yt-downloader.sh` to `~/bin/yt-downloader.sh`,
 `~/.config/yt-downloader-definitions.txt`, and add a daily crontab
 entry, for example `25 6 * * * ~/bin/yt-downloader.sh`.
 
-On this branch, the script is at:
+Download it with:
 
 ```bash
-curl -fL -o yt-downloader.sh https://raw.githubusercontent.com/ajpri/linux-scripts/yt-downloader/yt-downloader.sh
+curl -fL -o yt-downloader.sh https://raw.githubusercontent.com/ajpri/linux-scripts/main/yt-downloader.sh
 chmod +x yt-downloader.sh
 ```
