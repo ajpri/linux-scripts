@@ -1,12 +1,13 @@
 # linux-scripts
 
-Shell scripts for Linux setup, installation image and media downloads, display control, No Part Finance integration, and Hubitat Maker API control.
+Shell scripts for Linux setup, Chrome profile migration, installation image and media downloads, display control, No Part Finance integration, and Hubitat Maker API control.
 
 ## Contents
 
 - [fedorasetup.sh](#fedorasetupsh)
 - [foginstall.sh](#foginstallsh)
 - [download-iso.sh](#download-isosh)
+- [chrome-backup.sh](#chrome-backupsh)
 - [yt-downloader.sh](#yt-downloadersh)
 - [toggleDisplays.sh](#toggledisplayssh)
 - [npf-cli.sh](#npf-clish)
@@ -296,6 +297,83 @@ Allow room for the fresh download alongside existing files, plus extraction spac
 for compressed images. Normal exits remove staging files; forced termination or
 power loss can leave hidden staging directories. Monitor job logs for failures or
 upstream source changes.
+
+## chrome-backup.sh
+
+Interactive backup and restore for Google Chrome's `Default` profile, including
+migration from Pop!_OS to Fedora. Run as your normal desktop user, without sudo.
+
+### Install and requirements
+
+```bash
+curl -fL -o chrome-backup.sh https://raw.githubusercontent.com/ajpri/linux-scripts/main/chrome-backup.sh
+chmod +x chrome-backup.sh
+./chrome-backup.sh
+```
+
+Requires Bash, rsync, `pkill`/`pgrep`, GNU coreutils, and findutils. ZIP creation
+also requires `zip`; ZIP restore requires `unzip` and `zipinfo` from the unzip
+package. Missing dependencies are reported; nothing is installed automatically.
+
+```bash
+# Pop!_OS / Debian / Ubuntu
+sudo apt install rsync procps coreutils findutils zip unzip
+
+# Fedora
+sudo dnf install rsync procps-ng coreutils findutils zip unzip
+```
+
+### Backup
+
+Choose **1) Backup profile**, then enter the destination folder, for example
+`~/Desktop/chrome-backup`. The script creates the folder if necessary and refuses
+to reuse a destination containing `Default` or `Local State`.
+
+It copies `~/.config/google-chrome/Default/` and
+`~/.config/google-chrome/Local State` with rsync, excluding directories named
+`Cache`, `Code Cache`, and `GPUCache` at any depth. It verifies the copy with
+rsync checksums and reports the size and file count. Other Chrome profiles are
+not included.
+
+After verification, choose whether to create a ZIP. Choosing **yes** creates
+`<destination>.zip`, checks its integrity, publishes it without overwriting an
+existing archive, then removes the folder backup. A failed ZIP creation or
+verification preserves the folder. Unrelated files in a preexisting destination
+are preserved; the folder remains if it contains those files. Choosing **no**
+keeps the folder backup. ZIP creation refuses profiles containing symlinks.
+
+The ZIP contains `Default/` and `Local State` directly at its root. Allow disk
+space for both the folder and ZIP while compression runs.
+
+**Saved passwords are encrypted with the OS keyring and may not decrypt on a
+fresh install. Export passwords to CSV separately before migrating.**
+
+### Restore and preview
+
+Copy the backup folder or ZIP to the new machine, run the script, and choose
+**2) Restore profile**. Enter the source folder or ZIP file. A valid source must
+contain `Default/Preferences` and `Local State`; ZIP entries must use the root
+layout described above. Corrupt archives, unsafe paths, symlinks, and special
+files in ZIPs are rejected. ZIP restore uses temporary extraction space, removed
+when the script exits.
+
+Type `YES` at the overwrite prompt to replace the current `Default` contents
+and `Local State`. Restore deletes stale profile files and caches, verifies file
+contents, and prints a size/file-count summary. Other profile directories are
+preserved, but the shared `Local State` file is replaced.
+
+```bash
+# Choose Restore to preview either a folder or ZIP without changing the profile
+./chrome-backup.sh --dry-run
+
+./chrome-backup.sh --help
+```
+
+Both backup and restore, including restore previews, **force-close the current
+user's Chrome processes** and wait up to 15 seconds for them to disappear. If
+Chrome is still running, the operation stops. Keep Chrome closed until the
+operation finishes. Backup and live Chrome paths must not overlap. Ctrl-C exits
+cleanly; an interrupted copy may be incomplete.
 
 ## yt-downloader.sh
 
