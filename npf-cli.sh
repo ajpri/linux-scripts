@@ -35,7 +35,8 @@ Usage: npf-cli.sh [--env FILE] COMMAND [ARGS]
   preview FILE                 Resolve and validate answer file without submitting
   help                         Show this help
 
-First run prompts for URL and key. Configuration is private at:
+First run prompts for your deployment's HTTPS URL and key; there is no default URL.
+Configuration is private at:
   ~/.config/npf-cli/config (or $XDG_CONFIG_HOME/npf-cli/config)
 Use --env FILE for an optional alternative configuration file.
 Interactive answers are saved under ~/.local/state/npf-cli/answers
@@ -81,13 +82,14 @@ read_config() {
     done < "$ENV_FILE"
 }
 config_defaults() {
-    EXPTRACK_BASE_URL=${EXPTRACK_BASE_URL:-https://exptrack.pritchett.info}
+    EXPTRACK_BASE_URL=${EXPTRACK_BASE_URL:-}
     EXPTRACK_BASE_URL=${EXPTRACK_BASE_URL%/}
     EXPTRACK_TIMEOUT=${EXPTRACK_TIMEOUT:-30}
     EXPTRACK_PAGE_SIZE=${EXPTRACK_PAGE_SIZE:-100}
     EXPTRACK_API_KEY=${EXPTRACK_API_KEY:-}
 }
 validate_config() {
+    [[ -n "$EXPTRACK_BASE_URL" ]] || { fail 'An API URL is required. Run ./npf-cli.sh config to configure your deployment.'; return 1; }
     [[ "$EXPTRACK_API_KEY" != *$'\n'* && "$EXPTRACK_API_KEY" != *$'\r'* ]] || { fail 'Key contains a newline'; return 1; }
     [[ "$EXPTRACK_BASE_URL" =~ ^https://[^/?#[:space:]]+(/[^?#[:space:]]*)?$ ]] || { fail 'Base URL must use HTTPS without a query or fragment'; return 1; }
     [[ "$EXPTRACK_TIMEOUT" =~ ^[1-9][0-9]{0,3}$ ]] || { fail 'Timeout must be 1–9999 seconds'; return 1; }
@@ -119,14 +121,19 @@ configure() {
     if [[ -e "$ENV_FILE" ]]; then read_config || return 1; fi
     config_defaults
     if [[ "$action" == show ]]; then
-        printf 'Configuration: %s\nURL: %s\nKey: %s\n' "$ENV_FILE" "$EXPTRACK_BASE_URL" \
+        printf 'Configuration: %s\nURL: %s\nKey: %s\n' "$ENV_FILE" "${EXPTRACK_BASE_URL:-not configured}" \
             "$(if [[ -n "$EXPTRACK_API_KEY" ]]; then printf configured; else printf 'not configured'; fi)"
         return
     fi
     if [[ "$action" == setup || "$action" == url ]]; then
         if (( $# )); then value=$1
-        else read -r -p "API URL [$EXPTRACK_BASE_URL]: " value || return 1; fi
+        elif [[ -n "$EXPTRACK_BASE_URL" ]]; then
+            read -r -p "API URL [$EXPTRACK_BASE_URL]: " value || return 1
+        else
+            read -r -p 'HTTPS API URL (e.g. https://finance.example.com): ' value || return 1
+        fi
         EXPTRACK_BASE_URL=${value:-$EXPTRACK_BASE_URL}
+        [[ -n "$EXPTRACK_BASE_URL" ]] || { fail 'An API URL is required; enter the HTTPS URL of your No Part Finance deployment.'; return 1; }
     fi
     if [[ "$action" == setup || "$action" == key ]]; then
         read -r -s -p 'Integration key (hidden; blank keeps existing): ' value || { printf '\n' >&2; return 1; }
@@ -173,7 +180,7 @@ ANSWER
 load_env() {
     if [[ -e "$ENV_FILE" ]]; then read_config || return 1; fi
     config_defaults
-    if [[ ! -e "$ENV_FILE" || -z "$EXPTRACK_API_KEY" ]]; then
+    if [[ ! -e "$ENV_FILE" || -z "$EXPTRACK_API_KEY" || -z "$EXPTRACK_BASE_URL" ]]; then
         [[ -t 0 ]] || { fail "Run ./npf-cli.sh config to configure $ENV_FILE"; return 1; }
         configure setup || return 1
     fi
