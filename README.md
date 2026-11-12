@@ -12,6 +12,7 @@ Shell scripts for Linux setup, backups, downloads, display control, and API clie
 | [foginstall.sh](foginstall.sh) | Install a FOG imaging server on Debian or Ubuntu. | [FOG installation guide](docs/foginstall.md) |
 | [hubitat-cli.sh](hubitat-cli.sh) | Control devices and inspect Hubitat Maker API state. | [Hubitat guide](docs/hubitat-cli.md) |
 | [npf-cli.sh](npf-cli.sh) | Browse No Part Finance data and submit transaction proposals. | [No Part Finance guide](docs/npf-cli.md) |
+| [pfsense-backup.sh](pfsense-backup.sh) | Pull and validate daily pfSense configuration backups over SSH. | [pfSense backup guide](docs/pfsense-backup.md) |
 | [toggleDisplays.sh](toggleDisplays.sh) | Switch two X11 displays between extended and mirrored layouts. | [Display guide](docs/toggleDisplays.md) |
 | [yt-downloader.sh](yt-downloader.sh) | Download video or audio from a list of YouTube playlists. | [YouTube download guide](docs/yt-downloader.md) |
 
@@ -99,6 +100,19 @@ bash ./npf-cli.sh help
 ```
 
 [Full guide](docs/npf-cli.md) — configuration, queries, approval behavior, and answer files.
+
+## pfsense-backup.sh
+
+Pull the pfSense configuration over key-based SSH, validate the XML, and remove
+backups outside the requested retention window.
+
+**Requires:** Bash, OpenSSH client, xmllint, GNU coreutils, and flock.
+
+```bash
+bash ./pfsense-backup.sh firewall-backup "$HOME/backups/pfsense" 14 backupuser
+```
+
+[Full guide](docs/pfsense-backup.md) — SSH key setup, filenames, and retention.
 
 ## toggleDisplays.sh
 
