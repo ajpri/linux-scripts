@@ -14,6 +14,7 @@ Shell scripts for Linux setup, backups, downloads, display control, and API clie
 | [npf-cli.sh](npf-cli.sh) | Browse No Part Finance data and submit transaction proposals. | [No Part Finance guide](docs/npf-cli.md) |
 | [pfsense-backup.sh](pfsense-backup.sh) | Pull and validate daily pfSense configuration backups over SSH. | [pfSense backup guide](docs/pfsense-backup.md) |
 | [toggleDisplays.sh](toggleDisplays.sh) | Switch two X11 displays between extended and mirrored layouts. | [Display guide](docs/toggleDisplays.md) |
+| [update-linux.sh](update-linux.sh) | Update Linux packages, Flatpaks, Snaps, and standalone yt-dlp. | [Linux update guide](docs/update-linux.md) |
 | [yt-downloader.sh](yt-downloader.sh) | Download video or audio from a list of YouTube playlists. | [YouTube download guide](docs/yt-downloader.md) |
 
 The quick starts below assume you have downloaded or cloned this repository and
@@ -127,6 +128,21 @@ bash ./toggleDisplays.sh force-extend
 ```
 
 [Full guide](docs/toggleDisplays.md) — display configuration and saved state.
+
+## update-linux.sh
+
+Update system packages, remove unused dependencies, and clean the package cache.
+Also update Flatpaks, Snaps, and supported standalone yt-dlp releases when installed.
+The script never initiates a reboot.
+
+**Requires:** Bash, one of APT, DNF, YUM, Pacman, or Zypper, and root privileges or sudo.
+
+```bash
+./update-linux.sh
+./update-linux.sh -y
+```
+
+[Full guide](docs/update-linux.md) — unattended use, privileges, and supported installations.
 
 ## yt-downloader.sh
 
