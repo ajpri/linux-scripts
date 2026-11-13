@@ -7,13 +7,15 @@ Shell scripts for Linux setup, backups, downloads, display control, and API clie
 | Script | Purpose | Guide |
 | --- | --- | --- |
 | [chrome-backup.sh](chrome-backup.sh) | Back up and restore a Google Chrome profile, with ZIP support and progress. | [Chrome backup guide](docs/chrome-backup.md) |
+| [download-iso-director.sh](download-iso-director.sh) | Download an installation image on a fixed day of the month. | [ISO director guide](docs/download-iso-director.md) |
 | [download-iso.sh](download-iso.sh) | Download and verify Linux, Windows, and other installation images. | [ISO download guide](docs/download-iso.md) |
+| [download-openrct2.sh](download-openrct2.sh) | Download the latest stable OpenRCT2 AppImage and update its GNOME shortcut. | [OpenRCT2 guide](docs/download-openrct2.md) |
 | [fedorasetup.sh](fedorasetup.sh) | Set up Docker, guest utilities, mail, and containers on Fedora. | [Fedora setup guide](docs/fedorasetup.md) |
 | [foginstall.sh](foginstall.sh) | Install a FOG imaging server on Debian or Ubuntu. | [FOG installation guide](docs/foginstall.md) |
 | [hubitat-cli.sh](hubitat-cli.sh) | Control devices and inspect Hubitat Maker API state. | [Hubitat guide](docs/hubitat-cli.md) |
 | [npf-cli.sh](npf-cli.sh) | Browse No Part Finance data and submit transaction proposals. | [No Part Finance guide](docs/npf-cli.md) |
 | [pfsense-backup.sh](pfsense-backup.sh) | Pull and validate daily pfSense configuration backups over SSH. | [pfSense backup guide](docs/pfsense-backup.md) |
-| [toggleDisplays.sh](toggleDisplays.sh) | Switch two X11 displays between extended and mirrored layouts. | [Display guide](docs/toggleDisplays.md) |
+| [toggleDisplays.sh](toggleDisplays.sh) | Switch two displays between extended and mirrored layouts on GNOME Wayland. | [Display guide](docs/toggleDisplays.md) |
 | [update-linux.sh](update-linux.sh) | Update Linux packages, Flatpaks, Snaps, and standalone yt-dlp. | [Linux update guide](docs/update-linux.md) |
 | [yt-downloader.sh](yt-downloader.sh) | Download video or audio from a list of YouTube playlists. | [YouTube download guide](docs/yt-downloader.md) |
 
@@ -35,6 +37,18 @@ bash ./chrome-backup.sh --dry-run  # Choose Restore to preview changes
 
 [Full guide](docs/chrome-backup.md) — backup layout, restore, progress, and password handling.
 
+## download-iso-director.sh
+
+Pass an existing download directory to download the image assigned to today's date.
+
+**Requires:** Bash and `download-iso.sh` in the same directory, with its dependencies installed.
+
+```bash
+./download-iso-director.sh "/path/to/existing/isos"
+```
+
+[Full guide](docs/download-iso-director.md) — calendar behavior, variants, and cron setup.
+
 ## download-iso.sh
 
 Download installation images with checksum and format verification. Running
@@ -48,6 +62,19 @@ bash ./download-iso.sh fedora ~/Downloads
 ```
 
 [Full guide](docs/download-iso.md) — supported products, dependencies, options, and cron examples.
+
+## download-openrct2.sh
+
+Download and verify the latest stable OpenRCT2 AppImage, keep the previous copy,
+and update its GNOME shortcut.
+
+**Requires:** Bash, curl, jq, CA certificates, GNU coreutils, sed, and flock.
+
+```bash
+./download-openrct2.sh "$HOME/Applications/AppImage"
+```
+
+[Full guide](docs/download-openrct2.md) — shortcut, rollback, and cron setup.
 
 ## fedorasetup.sh
 
@@ -117,17 +144,16 @@ bash ./pfsense-backup.sh firewall-backup "$HOME/backups/pfsense" 14 backupuser
 
 ## toggleDisplays.sh
 
-Toggle two displays between extended and mirrored layouts. Configure the display
-names and shared mode for your machine.
+Toggle two displays between extended and mirrored layouts.
 
-**Requires:** Linux, Bash, and xrandr in an X11 session.
+**Requires:** A GNOME Wayland session, Bash, and Python 3 with PyGObject.
 
 ```bash
-bash ./toggleDisplays.sh
-bash ./toggleDisplays.sh force-extend
+./toggleDisplays.sh
+./toggleDisplays.sh force-extend
 ```
 
-[Full guide](docs/toggleDisplays.md) — display configuration and saved state.
+[Full guide](docs/toggleDisplays.md) — connector detection and display configuration.
 
 ## update-linux.sh
 
