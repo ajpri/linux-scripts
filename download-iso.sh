@@ -628,25 +628,21 @@ ensure_dependencies
 # Only the optional dependency offer above may read input. Downloads and all
 # verification tools always see EOF, including runs started in a terminal.
 exec </dev/null
-trap 'rc=$?; printf "ERROR: ISO download failed (line %s, status %s).\n" "$LINENO" "$rc" >&2; exit "$rc"' ERR
-exec 9>"$folder/.$lock_id-download.lock"
-work=$(mktemp -d "$folder/.$lock_id-download.XXXXXXXX")
-trap 'rm -rf -- "$work"' EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
 
 # Source resolvers only select a URL and verification metadata. The shared engine
 # below handles every transfer, verification, output name, and retention policy.
-# Parse the exit with this command so editing the script during a long download
-# cannot make Bash resume reading at a stale offset after the engine finishes.
-python3 - "$work" "$folder" "$product" "$requested" "$edition" "$run_date" "$keep" "$silent" <<'PY_ENGINE'; exit
+exec python3 - "$lock_id" "$folder" "$product" "$requested" "$edition" "$run_date" "$keep" "$silent" <<'PY_ENGINE'
+import fcntl
 import gzip
 import hashlib
 import os
 import re
 import shutil
+import signal
+import stat
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -2269,16 +2265,50 @@ def run_download(work, folder, product, requested, edition, stamp, keep, silent)
     print(('Verified disk image structure. Saved: ' if product == 'chromeosflex' else 'Verified ISO structure. Saved: ') + str(target))
 
 
-try:
-    work, folder, product, requested, edition, stamp, keep, silent = sys.argv[1:]
-    import fcntl
+def lock_matches_path(lock_path, opened):
     try:
-        # FD 9 is inherited from Bash. The shared open file description keeps
-        # the lock held through Bash's staging cleanup after Python exits.
-        fcntl.flock(9, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError:
-        raise RuntimeError('Another ' + product + ' download is running in: ' + folder)
-    run_download(Path(work), Path(folder), product, requested, edition, stamp, keep == '1', silent == '1')
+        return os.path.samestat(opened, lock_path.lstat())
+    except FileNotFoundError:
+        return False
+
+
+def download_with_lock(lock_id, folder, product, requested, edition, stamp, keep, silent):
+    lock_path = folder / f'.{lock_id}-download.lock'
+    while True:
+        fd = os.open(lock_path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK, 0o666)
+        try:
+            opened = os.fstat(fd)
+            if not stat.S_ISREG(opened.st_mode) or opened.st_size:
+                raise RuntimeError(f'Expected an empty regular lock file: {lock_path}')
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise RuntimeError(f'Another {product} download is running in: {folder}') from None
+            # The previous owner may have unlinked this file after we opened it.
+            if not lock_matches_path(lock_path, opened):
+                continue
+            try:
+                with tempfile.TemporaryDirectory(prefix=f'.{lock_id}-download.', dir=folder) as work:
+                    run_download(Path(work), folder, product, requested, edition, stamp, keep, silent)
+            finally:
+                # Keep the lock through staging cleanup and removal of its pathname.
+                if lock_matches_path(lock_path, opened):
+                    lock_path.unlink()
+            return
+        finally:
+            os.close(fd)
+
+
+def exit_on_term(signum, _frame):
+    raise SystemExit(128 + signum)
+
+
+try:
+    lock_id, folder, product, requested, edition, stamp, keep, silent = sys.argv[1:]
+    signal.signal(signal.SIGTERM, exit_on_term)
+    download_with_lock(lock_id, Path(folder), product, requested, edition, stamp, keep == '1', silent == '1')
+except KeyboardInterrupt:
+    sys.exit(130)
 except Exception as exc:
     sys.exit('ERROR: Could not download, verify, or publish image: ' + str(exc))
 PY_ENGINE

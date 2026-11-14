@@ -115,8 +115,11 @@ and prunes managed history according to that product's cleanup rules. Product
 help describes the scope. Other products and unrelated files are preserved.
 Downloads stage in the destination and publish atomically after verification;
 failures before publication preserve existing images. Per-product locks prevent
-concurrent downloads of the same product into the same folder. Locking uses
-Python’s standard-library `fcntl.flock`; no `flock` command/package is required.
+concurrent downloads of the same product into the same folder. The downloader
+removes its hidden lock file after staging cleanup, including when a download
+fails. A forced kill or power loss can leave an empty lock file that the next
+run for that product reuses and removes. Locking uses Python’s standard-library
+`fcntl.flock`.
 
 ## Requirements and verification
 

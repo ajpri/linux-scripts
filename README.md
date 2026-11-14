@@ -10,6 +10,7 @@ Shell scripts for Linux setup, backups, downloads, display control, and API clie
 | [download-iso-director.sh](download-iso-director.sh) | Download an installation image on a fixed day of the month. | [ISO director guide](docs/download-iso-director.md) |
 | [download-iso.sh](download-iso.sh) | Download and verify Linux, Windows, and other installation images. | [ISO download guide](docs/download-iso.md) |
 | [download-openrct2.sh](download-openrct2.sh) | Download the latest stable OpenRCT2 AppImage and update its GNOME shortcut. | [OpenRCT2 guide](docs/download-openrct2.md) |
+| [download-ventoy.sh](download-ventoy.sh) | Download and unpack the latest stable Ventoy Linux release, keeping one previous version. | [Ventoy guide](docs/download-ventoy.md) |
 | [fedorasetup.sh](fedorasetup.sh) | Set up Docker, guest utilities, mail, and containers on Fedora. | [Fedora setup guide](docs/fedorasetup.md) |
 | [foginstall.sh](foginstall.sh) | Install a FOG imaging server on Debian or Ubuntu. | [FOG installation guide](docs/foginstall.md) |
 | [hubitat-cli.sh](hubitat-cli.sh) | Control devices and inspect Hubitat Maker API state. | [Hubitat guide](docs/hubitat-cli.md) |
@@ -75,6 +76,20 @@ and update its GNOME shortcut.
 ```
 
 [Full guide](docs/download-openrct2.md) — shortcut, rollback, and cron setup.
+
+## download-ventoy.sh
+
+Download and verify the latest stable Ventoy Linux release, extract it to
+`Ventoy`, and keep one prior version in `Ventoy-previous`. The updater also adds
+a Ventoy shortcut to your application menu.
+
+**Requires:** Bash, curl, jq, GNU coreutils, GNU tar, gzip, flock, and CA certificates.
+
+```bash
+./download-ventoy.sh "/path/to/download"
+```
+
+[Full guide](docs/download-ventoy.md) — directory layout, version retention, and cron setup.
 
 ## fedorasetup.sh
 
