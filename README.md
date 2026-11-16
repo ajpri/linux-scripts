@@ -17,6 +17,7 @@ Shell scripts for Linux setup, backups, downloads, display control, and API clie
 | [npf-cli.sh](npf-cli.sh) | Browse No Part Finance data and submit transaction proposals. | [No Part Finance guide](docs/npf-cli.md) |
 | [pfsense-backup.sh](pfsense-backup.sh) | Pull and validate daily pfSense configuration backups over SSH. | [pfSense backup guide](docs/pfsense-backup.md) |
 | [toggleDisplays.sh](toggleDisplays.sh) | Switch two displays between extended and mirrored layouts on GNOME Wayland. | [Display guide](docs/toggleDisplays.md) |
+| [ToggleSecondMonitor.sh](ToggleSecondMonitor.sh) | Enable or disable a second display on GNOME Wayland. | [Second monitor guide](docs/ToggleSecondMonitor.md) |
 | [update-linux.sh](update-linux.sh) | Update Linux packages, Flatpaks, Snaps, and standalone yt-dlp. | [Linux update guide](docs/update-linux.md) |
 | [yt-downloader.sh](yt-downloader.sh) | Download video or audio from a list of YouTube playlists. | [YouTube download guide](docs/yt-downloader.md) |
 
@@ -169,6 +170,18 @@ Toggle two displays between extended and mirrored layouts.
 ```
 
 [Full guide](docs/toggleDisplays.md) — connector detection and display configuration.
+
+## ToggleSecondMonitor.sh
+
+Switch between the primary display alone and two extended displays.
+
+**Requires:** A GNOME Wayland session, Bash, and Python 3 with PyGObject.
+
+```bash
+./ToggleSecondMonitor.sh
+```
+
+[Full guide](docs/ToggleSecondMonitor.md) — connector selection and layout behavior.
 
 ## update-linux.sh
 
