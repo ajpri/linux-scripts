@@ -126,7 +126,7 @@ backups outside the requested retention window.
 **Requires:** Bash, curl, file, GNU coreutils, and flock.
 
 ```bash
-bash ./hubitat-backup.sh hubitat.local "$HOME/backups/hubitat" 30
+./hubitat-backup.sh hubitat.local "$HOME/backups/hubitat" 30
 ```
 
 [Full guide](docs/hubitat-backup.md) — requirements, filenames, retention, and cron setup.

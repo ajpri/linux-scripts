@@ -11,7 +11,8 @@ usage() {
 Usage: hubitat-backup.sh HUB_HOST LOCAL_DIR KEEP_DAYS
 
 Save the hub database from /hub/backupDB as Hubitat-YYYYMMDD.lzf.
-HUB_HOST may be a hostname or IP address.
+HUB_HOST may be a hostname, IPv4 address, or IPv6 literal.
+Use brackets around an IPv6 literal when specifying a port.
 KEEP_DAYS is a positive integer and includes today in the retention window.
 Use a separate private destination directory for each hub.
 HELP
@@ -35,7 +36,14 @@ hub_host=$1
 local_dir=$2
 keep_days=$3
 
-[[ $hub_host =~ ^[a-zA-Z0-9_.:%-]+$ && $hub_host != -* ]] ||
+# Bare IPv6 addresses have at least two colons and need brackets in HTTP URLs.
+ipv6_literal='[[:xdigit:].]*:[[:xdigit:].:]*:[[:xdigit:].:]*(%[a-zA-Z0-9_.~-]+)?'
+if [[ $hub_host =~ ^$ipv6_literal$ ]]; then
+    hub_host="[$hub_host]"
+fi
+[[ $hub_host != -* &&
+    ( $hub_host =~ ^[a-zA-Z0-9_.-]+(:[0-9]+)?$ ||
+      $hub_host =~ ^\[$ipv6_literal\](:[0-9]+)?$ ) ]] ||
     die 'Specify a hostname or IP address without a scheme or username.'
 [[ -n $local_dir ]] || die 'The destination directory cannot be empty.'
 [[ $keep_days =~ ^0*[1-9][0-9]*$ ]] || die 'KEEP_DAYS must be a positive integer.'
@@ -68,12 +76,17 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 # Hitting backupDB creates a fresh backup and downloads it in one go.
-if ! curl -fsS --connect-timeout 10 --max-time 120 \
-    "http://$hub_host/hub/backupDB?fileName=latest" -o "$temp_file"; then
+if ! http_status=$(curl -fsS --connect-timeout 10 --max-time 120 \
+    --output "$temp_file" --write-out '%{http_code}' \
+    "http://$hub_host/hub/backupDB?fileName=latest"); then
     die 'Could not download the hub backup.'
 fi
+[[ $http_status == 200 ]] || die "Expected a complete backup (HTTP 200), got HTTP $http_status."
 
-# Reject anything that is not a Hubitat database file, even when curl exits 0.
+# An H2 FileStore starts with three 16-byte header blocks, followed by payload blocks.
+backup_size=$(stat -c %s -- "$temp_file") || die 'Could not read the downloaded file size.'
+(( backup_size > 48 && backup_size % 16 == 0 )) ||
+    die 'The downloaded file is too short or has an incomplete H2 block.'
 if ! file_check=$(file -b -- "$temp_file" 2>&1) || [[ $file_check != *'H2 Database'* ]]; then
     die 'The downloaded file is not a Hubitat database backup.'
 fi

@@ -23,18 +23,21 @@ hubitat-backup.sh HUB_HOST LOCAL_DIR KEEP_DAYS
 ```
 
 ```bash
-bash ./hubitat-backup.sh hubitat.local "$HOME/backups/hubitat" 30
+./hubitat-backup.sh hubitat.local "$HOME/backups/hubitat" 30
+./hubitat-backup.sh '2001:db8::10' "$HOME/backups/hubitat" 30
 ```
 
-The hub host can be a hostname or IP address. Hitting the backup endpoint
-creates a fresh backup and downloads it in one request.
+Use a hostname, IPv4 address, or IPv6 literal. An IPv6 literal can be bare
+or bracketed. For a custom port on an IPv6 address, use brackets, as in
+`[2001:db8::10]:8080`. The backup endpoint creates a fresh backup and
+downloads it in one request.
 
 The script creates the destination if needed and saves
-`Hubitat-YYYYMMDD.lzf` using the backup machine's local date. It checks that
-the download is a Hubitat database file before replacing a backup for the
-same date. A failed transfer or format check preserves existing backups. The
-check verifies the file format. Restore compatibility depends on the target
-hub model and platform version.
+`Hubitat-YYYYMMDD.lzf` using the backup machine's local date. Before replacing
+a backup for the same date, it requires HTTP 200 and checks the H2 file
+signature and size. A failed transfer or format check preserves existing
+backups and skips retention cleanup. A restore on a compatible hub is needed
+to verify the encrypted database contents.
 
 The retention window includes today. With `30`, the script keeps today and
 the preceding 29 calendar days. After a successful save, it removes only
