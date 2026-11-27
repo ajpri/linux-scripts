@@ -13,6 +13,7 @@ Shell scripts for Linux setup, backups, downloads, display control, and API clie
 | [download-ventoy.sh](download-ventoy.sh) | Download and unpack the latest stable Ventoy Linux release, keeping one previous version. | [Ventoy guide](docs/download-ventoy.md) |
 | [fedorasetup.sh](fedorasetup.sh) | Set up Docker, guest utilities, mail, and containers on Fedora. | [Fedora setup guide](docs/fedorasetup.md) |
 | [foginstall.sh](foginstall.sh) | Install a FOG imaging server on Debian or Ubuntu. | [FOG installation guide](docs/foginstall.md) |
+| [hubitat-backup.sh](hubitat-backup.sh) | Pull and validate daily Hubitat hub database backups over HTTP. | [Hubitat backup guide](docs/hubitat-backup.md) |
 | [hubitat-cli.sh](hubitat-cli.sh) | Control devices and inspect Hubitat Maker API state. | [Hubitat guide](docs/hubitat-cli.md) |
 | [npf-cli.sh](npf-cli.sh) | Browse No Part Finance data and submit transaction proposals. | [No Part Finance guide](docs/npf-cli.md) |
 | [pfsense-backup.sh](pfsense-backup.sh) | Pull and validate daily pfSense configuration backups over SSH. | [pfSense backup guide](docs/pfsense-backup.md) |
@@ -116,6 +117,19 @@ bash ./foginstall.sh
 ```
 
 [Full guide](docs/foginstall.md) — installation details.
+
+## hubitat-backup.sh
+
+Pull the Hubitat hub database over HTTP, validate the backup file, and remove
+backups outside the requested retention window.
+
+**Requires:** Bash, curl, file, GNU coreutils, and flock.
+
+```bash
+bash ./hubitat-backup.sh hubitat.local "$HOME/backups/hubitat" 30
+```
+
+[Full guide](docs/hubitat-backup.md) — requirements, filenames, retention, and cron setup.
 
 ## hubitat-cli.sh
 

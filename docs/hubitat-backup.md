@@ -1,0 +1,65 @@
+# hubitat-backup.sh
+
+[Back to script index](../README.md) · [Script source](../hubitat-backup.sh)
+
+Pull the Hubitat hub database to a Linux machine over HTTP and keep one
+backup per day.
+
+## Requirements
+
+Use Bash, `curl`, `file`, GNU coreutils, and `flock` from util-linux. On
+Debian and Ubuntu, `file` is in the `file` package. On Fedora, install
+`file` for the backup format check.
+
+The hub must be reachable over HTTP from the backup machine. No login is
+needed while hub security is off; if hub security is on, the backup
+endpoint requires a login session first, so the script stops with an error
+instead of saving a login page.
+
+## Run a backup
+
+```text
+hubitat-backup.sh HUB_HOST LOCAL_DIR KEEP_DAYS
+```
+
+```bash
+bash ./hubitat-backup.sh hubitat.local "$HOME/backups/hubitat" 30
+```
+
+The hub host can be a hostname or IP address. Hitting the backup endpoint
+creates a fresh backup and downloads it in one request.
+
+The script creates the destination if needed and saves
+`Hubitat-YYYYMMDD.lzf` using the backup machine's local date. It checks that
+the download is a Hubitat database file before replacing a backup for the
+same date. A failed transfer or format check preserves existing backups. The
+check verifies the file format. Restore compatibility depends on the target
+hub model and platform version.
+
+The retention window includes today. With `30`, the script keeps today and
+the preceding 29 calendar days. After a successful save, it removes only
+older regular files in the destination whose names match the backup pattern
+and contain a valid date.
+
+Use a private destination outside the repository and a separate directory for
+each hub. New directories have mode `0700`, and backup files have mode
+`0600`. The backup contains the hub database, including device settings and
+stored credentials, so treat it like any other secret. The local backup
+covers the hub database only; the Zigbee and Z-Wave radio data is not
+included. Hub Protect cloud backup is the supported way to include it.
+
+## Schedule daily backups
+
+After a manual backup succeeds, install the script and open your crontab.
+
+```bash
+install -D -m 0755 ./hubitat-backup.sh "$HOME/bin/hubitat-backup.sh"
+crontab -e
+```
+
+This example runs at 4:00 a.m. in the cron daemon's time zone, keeps 30 days
+of backups, and leaves error output available to cron.
+
+```cron
+0 4 * * * ~/bin/hubitat-backup.sh hubitat.local ~/backups/hubitat 30 >/dev/null
+```
